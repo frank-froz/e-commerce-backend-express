@@ -1,0 +1,22 @@
+{
+  "author": "fhuaytalla.aloayza.jrodriguez",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0",
+    "pg": "^8.11.3",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
