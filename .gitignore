@@ -1,1 +1,26 @@
+# 📦 Dependencies
 node_modules
+
+# 🔐 Variables de entorno
+.env
+.env.local
+.env.production
+
+# 🗄️ Prisma
+prisma/migrations/.history
+
+# 📝 Logs
+*.log
+npm-debug.log*
+logs
+
+# 🔧 Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# 💾 Sistema
+.DS_Store
+Thumbs.db
+/src/generated/prisma
