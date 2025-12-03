@@ -9,6 +9,8 @@ node_modules
 # 🗄️ Prisma
 prisma/migrations/.history
 
+scripts/
+
 # 📝 Logs
 *.log
 npm-debug.log*
