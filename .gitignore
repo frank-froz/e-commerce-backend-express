@@ -5,13 +5,16 @@ node_modules
 .env
 .env.local
 .env.production
+.env.test
 
 # 🗄️ Prisma
 prisma/migrations/.history
+/src/generated/prisma
 
 # 📝 Logs
 *.log
 npm-debug.log*
+yarn-error.log*
 logs
 
 # 🔧 Editor
@@ -19,8 +22,17 @@ logs
 .idea
 *.swp
 *.swo
+*.bak
 
 # 💾 Sistema
 .DS_Store
 Thumbs.db
-/src/generated/prisma
+
+# Testing
+coverage
+.nyc_output
+
+# Scripts temporales
+insert-roles.js
+create-admin.js
+test-*.js
