@@ -138,6 +138,8 @@ const register = async (req, res) => {
           roles: nuevoUsuario.roles.map(ur => ur.rol.nombre),
           fechaCreacion: nuevoUsuario.fechaCreacion
         },
+        accessToken,
+        refreshToken,
         message: 'Usuario registrado exitosamente'
       }
     });
@@ -246,6 +248,8 @@ const login = async (req, res) => {
           nombreCompleto: usuario.nombreCompleto,
           roles: usuario.roles.map(ur => ur.rol.nombre)
         },
+        accessToken,
+        refreshToken,
         message: 'Inicio de sesión exitoso'
       }
     });
