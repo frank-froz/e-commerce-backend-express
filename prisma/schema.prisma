@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Rol {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @unique @db.VarChar(100)
+  descripcion String?
+  usuarios    UsuarioRol[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  correo           String            @unique @db.VarChar(255)
+  contrasenaHash   String            @map("contrasena_hash")
+  nombreCompleto   String?           @map("nombre_completo") @db.VarChar(255)
+  fechaCreacion    DateTime          @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  carritos         Carrito[]
+  comprasCreadas   Compra[]          @relation("CompraCreador")
+  movimientosStock MovimientoStock[]
+  ordenes          Orden[]
+  roles            UsuarioRol[]
+
+  @@map("usuarios")
+}
+
+model UsuarioRol {
+  usuarioId String  @map("usuario_id") @db.Uuid
+  rolId     Int     @map("rol_id")
+  rol       Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, rolId])
+  @@map("usuarios_roles")
+}
+
+model TipoProducto {
+  id        Int             @id @default(autoincrement())
+  codigo    String          @unique @db.VarChar(50)
+  nombre    String          @db.VarChar(255)
+  lineas    LineaProducto[]
+  productos Producto[]
+
+  @@map("tipo_producto")
+}
+
+model LineaProducto {
+  id                  Int          @id @default(autoincrement())
+  tipoProductoId      Int          @map("tipo_producto_id")
+  codigo              String       @db.VarChar(50)
+  nombre              String       @db.VarChar(255)
+  descuentoPorcentaje Decimal      @default(0) @map("descuento_porcentaje") @db.Decimal(5, 2)
+  tipoProducto        TipoProducto @relation(fields: [tipoProductoId], references: [id])
+  productos           Producto[]
+
+  @@unique([tipoProductoId, codigo])
+  @@map("linea_producto")
+}
+
+model Marca {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique @db.VarChar(255)
+  productos Producto[]
+
+  @@map("marcas")
+}
+
+model Categoria {
+  id               Int         @id @default(autoincrement())
+  nombre           String      @unique @db.VarChar(255)
+  categoriaPadreId Int?        @map("categoria_padre_id")
+  categoriaPadre   Categoria?  @relation("CategoriaHijos", fields: [categoriaPadreId], references: [id])
+  subcategorias    Categoria[] @relation("CategoriaHijos")
+  productos        Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id               Int               @id @default(autoincrement())
+  sku              String            @unique @db.VarChar(100)
+  nombre           String            @db.VarChar(255)
+  descripcion      String?
+  marcaId          Int?              @map("marca_id")
+  categoriaId      Int?              @map("categoria_id")
+  tipoProductoId   Int?              @map("tipo_producto_id")
+  lineaProductoId  Int?              @map("linea_producto_id")
+  precio           Decimal           @db.Decimal(12, 2)
+  activo           Boolean           @default(true)
+  fechaCreacion    DateTime          @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  carritoDetalle   CarritoDetalle[]
+  comprasDetalle   CompraDetalle[]
+  movimientosStock MovimientoStock[]
+  ordenesDetalle   OrdenDetalle[]
+  categoria        Categoria?        @relation(fields: [categoriaId], references: [id])
+  lineaProducto    LineaProducto?    @relation(fields: [lineaProductoId], references: [id])
+  marca            Marca?            @relation(fields: [marcaId], references: [id])
+  tipoProducto     TipoProducto?     @relation(fields: [tipoProductoId], references: [id])
+  stock            StockProducto?
+
+  @@map("productos")
+}
+
+model StockProducto {
+  id                 BigInt   @id @default(autoincrement())
+  productoId         Int      @unique @map("producto_id")
+  cantidad           Int      @default(0)
+  fechaActualizacion DateTime @default(now()) @map("fecha_actualizacion") @db.Timestamp(6)
+  producto           Producto @relation(fields: [productoId], references: [id])
+
+  @@map("stock_producto")
+}
+
+model MovimientoStock {
+  id             BigInt   @id @default(autoincrement())
+  productoId     Int      @map("producto_id")
+  cantidad       Int
+  tipoMovimiento String   @map("tipo_movimiento") @db.VarChar(100)
+  referencia     String?  @db.VarChar(255)
+  creadoPor      String?  @map("creado_por") @db.Uuid
+  fechaCreacion  DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  creador        Usuario? @relation(fields: [creadoPor], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+
+  @@map("movimientos_stock")
+}
+
+model Proveedor {
+  id             Int      @id @default(autoincrement())
+  nombre         String   @db.VarChar(255)
+  contactoNombre String?  @map("contacto_nombre") @db.VarChar(255)
+  contactoCorreo String?  @map("contacto_correo") @db.VarChar(255)
+  telefono       String?  @db.VarChar(50)
+  fechaCreacion  DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  compras        Compra[]
+
+  @@map("proveedores")
+}
+
+model Compra {
+  id             BigInt          @id @default(autoincrement())
+  proveedorId    Int?            @map("proveedor_id")
+  creadoPor      String?         @map("creado_por") @db.Uuid
+  montoTotal     Decimal         @default(0) @map("monto_total") @db.Decimal(14, 2)
+  estado         String          @default("borrador") @db.VarChar(50)
+  fechaCreacion  DateTime        @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaRecepcion DateTime?       @map("fecha_recepcion") @db.Timestamp(6)
+  creador        Usuario?        @relation("CompraCreador", fields: [creadoPor], references: [id])
+  proveedor      Proveedor?      @relation(fields: [proveedorId], references: [id])
+  detalles       CompraDetalle[]
+
+  @@map("compras")
+}
+
+model CompraDetalle {
+  id             BigInt   @id @default(autoincrement())
+  compraId       BigInt   @map("compra_id")
+  productoId     Int      @map("producto_id")
+  precioUnitario Decimal  @map("precio_unitario") @db.Decimal(12, 2)
+  cantidad       Int
+  subtotal       Decimal  @db.Decimal(14, 2)
+  compra         Compra   @relation(fields: [compraId], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+
+  @@map("compras_detalle")
+}
+
+model Orden {
+  id                BigInt         @id @default(autoincrement())
+  usuarioId         String?        @map("usuario_id") @db.Uuid
+  montoTotal        Decimal        @default(0) @map("monto_total") @db.Decimal(14, 2)
+  estado            String         @default("carrito") @db.VarChar(50)
+  fechaCreacion     DateTime       @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaConfirmacion DateTime?      @map("fecha_confirmacion") @db.Timestamp(6)
+  usuario           Usuario?       @relation(fields: [usuarioId], references: [id])
+  detalles          OrdenDetalle[]
+
+  @@map("ordenes")
+}
+
+model OrdenDetalle {
+  id             BigInt   @id @default(autoincrement())
+  ordenId        BigInt   @map("orden_id")
+  productoId     Int      @map("producto_id")
+  precioUnitario Decimal  @map("precio_unitario") @db.Decimal(12, 2)
+  cantidad       Int
+  subtotal       Decimal  @db.Decimal(14, 2)
+  orden          Orden    @relation(fields: [ordenId], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+
+  @@map("ordenes_detalle")
+}
+
+model Carrito {
+  id                 BigInt           @id @default(autoincrement())
+  usuarioId          String           @map("usuario_id") @db.Uuid
+  estado             String           @default("activo") @db.VarChar(50)
+  fechaCreacion      DateTime         @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaActualizacion DateTime         @default(now()) @map("fecha_actualizacion") @db.Timestamp(6)
+  detalles           CarritoDetalle[]
+  usuario            Usuario          @relation(fields: [usuarioId], references: [id])
+
+  @@map("carritos")
+}
+
+model CarritoDetalle {
+  id                 BigInt   @id @default(autoincrement())
+  carritoId          BigInt   @map("carrito_id")
+  productoId         Int      @map("producto_id")
+  cantidad           Int
+  precioUnitario     Decimal  @map("precio_unitario") @db.Decimal(12, 2)
+  fechaCreacion      DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaActualizacion DateTime @default(now()) @map("fecha_actualizacion") @db.Timestamp(6)
+  carrito            Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  producto           Producto @relation(fields: [productoId], references: [id])
+
+  @@unique([carritoId, productoId])
+  @@map("carrito_detalle")
+}

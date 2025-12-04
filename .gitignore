@@ -1,1 +1,41 @@
+# 📦 Dependencies
 node_modules
+
+# 🔐 Variables de entorno
+.env
+.env.local
+.env.production
+.env.test
+
+# 🗄️ Prisma
+prisma/migrations/.history
+/src/generated/prisma
+
+scripts/
+
+# 📝 Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+logs
+
+# 🔧 Editor
+.vscode
+.idea
+*.swp
+*.swo
+*.bak
+
+# 💾 Sistema
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+.nyc_output
+
+# Scripts temporales
+insert-roles.js
+create-admin.js
+test-*.js
+/src/generated/prisma
