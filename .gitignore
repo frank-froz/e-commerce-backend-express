@@ -11,6 +11,8 @@ node_modules
 prisma/migrations/.history
 /src/generated/prisma
 
+scripts/
+
 # 📝 Logs
 *.log
 npm-debug.log*
@@ -36,3 +38,4 @@ coverage
 insert-roles.js
 create-admin.js
 test-*.js
+/src/generated/prisma

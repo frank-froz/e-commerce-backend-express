@@ -3,8 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Importar rutas
 const authRoutes = require('./routes/auth.routes');
+const compraRoutes = require('./routes/compra.routes');
+const ordenRoutes = require('./routes/orden.routes');
+const carritoRoutes = require('./routes/carrito.routes');
+const stockRoutes = require('./routes/stock.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +54,12 @@ app.get('/health', (req, res) => {
 
 // Rutas de autenticación
 app.use('/api/auth', authRoutes);
+
+// Rutas de negocio
+app.use('/api/compras', compraRoutes);
+app.use('/api/ordenes', ordenRoutes);
+app.use('/api/carrito', carritoRoutes);
+app.use('/api/stock', stockRoutes);
 
 // Ruta 404
 app.use((req, res) => {
