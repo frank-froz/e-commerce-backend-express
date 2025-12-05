@@ -89,6 +89,13 @@ async function obtenerCarrito(usuarioId) {
               nombre: true,
               descripcion: true,
               precio: true,
+              lineaProducto: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  descuentoPorcentaje: true
+                }
+              },
               stock: {
                 select: {
                   cantidad: true
@@ -105,19 +112,48 @@ async function obtenerCarrito(usuarioId) {
     return null;
   }
 
-  // Calcular totales
-  const subtotal = carrito.detalles.reduce((sum, item) => {
-    return sum + (Number(item.precioUnitario) * item.cantidad);
-  }, 0);
+  // Calcular totales con descuentos
+  let subtotal = 0;
+  let totalDescuentos = 0;
+
+  const detallesConDescuento = carrito.detalles.map(d => {
+    const precioUnitario = Number(d.precioUnitario);
+    const cantidad = d.cantidad;
+    const descuentoPorcentaje = d.producto.lineaProducto?.descuentoPorcentaje 
+      ? parseFloat(d.producto.lineaProducto.descuentoPorcentaje) 
+      : 0;
+    
+    const tieneDescuento = descuentoPorcentaje > 0;
+    const precioConDescuento = tieneDescuento 
+      ? precioUnitario - (precioUnitario * descuentoPorcentaje / 100)
+      : precioUnitario;
+    
+    const subtotalSinDescuento = precioUnitario * cantidad;
+    const subtotalItem = precioConDescuento * cantidad;
+    const descuentoItem = subtotalSinDescuento - subtotalItem;
+
+    subtotal += subtotalItem;
+    totalDescuentos += descuentoItem;
+
+    return {
+      ...d,
+      precioUnitario,
+      descuentoPorcentaje,
+      precioConDescuento,
+      tieneDescuento,
+      subtotalSinDescuento,
+      subtotalItem,
+      descuentoItem,
+      stockDisponible: d.producto.stock?.cantidad || 0
+    };
+  });
 
   const result = {
     ...carrito,
-    detalles: carrito.detalles.map(d => ({
-      ...d,
-      subtotalItem: Number(d.precioUnitario) * d.cantidad,
-      stockDisponible: d.producto.stock?.cantidad || 0
-    })),
+    detalles: detallesConDescuento,
     subtotal,
+    totalDescuentos,
+    total: subtotal,
     cantidadItems: carrito.detalles.length,
     cantidadProductos: carrito.detalles.reduce((sum, item) => sum + item.cantidad, 0)
   };
