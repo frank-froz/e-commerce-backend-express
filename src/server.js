@@ -4,6 +4,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/auth.routes');
+const catalogoRoutes = require('./routes/catalogo.routes');
+const productoRoutes = require('./routes/producto.routes');
 const compraRoutes = require('./routes/compra.routes');
 const ordenRoutes = require('./routes/orden.routes');
 const carritoRoutes = require('./routes/carrito.routes');
@@ -56,6 +58,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 
 // Rutas de negocio
+app.use('/api', catalogoRoutes);
+app.use('/api/productos', productoRoutes);
 app.use('/api/compras', compraRoutes);
 app.use('/api/ordenes', ordenRoutes);
 app.use('/api/carrito', carritoRoutes);

@@ -33,7 +33,7 @@ const generateAccessToken = (payload) => {
 const generateRefreshToken = (payload) => {
   return jwt.sign(
     payload,
-    process.env.JWT_REFRESH_SECRET,
+    process.env.JWT_SECRET,  // Usar el mismo secret que access token
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   );
 };
@@ -57,7 +57,7 @@ const verifyAccessToken = (token) => {
  */
 const verifyRefreshToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    return jwt.verify(token, process.env.JWT_SECRET);  // Usar el mismo secret
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
       throw new Error('REFRESH_TOKEN_EXPIRED');
