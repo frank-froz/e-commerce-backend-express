@@ -20,14 +20,70 @@ const { convertBigIntToString } = require('../utils/bigint');
  * await actualizarCarrito('uuid-usuario', 10, 0, 100.00);
  */
 async function actualizarCarrito(usuarioId, productoId, cantidad, precio) {
-  await prisma.$executeRaw`
-    SELECT proc_actualizar_carrito(
-      ${usuarioId}::UUID,
-      ${productoId}::INT,
-      ${cantidad}::INT,
-      ${precio}::NUMERIC
-    )
-  `;
+  // 1) Buscar carrito activo del usuario, crear si no existe
+  let carrito = await prisma.carrito.findFirst({
+    where: {
+      usuarioId,
+      estado: 'activo',
+    },
+  });
+
+  if (!carrito) {
+    carrito = await prisma.carrito.create({
+      data: {
+        usuarioId,
+        estado: 'activo',
+        fechaCreacion: new Date(),
+      },
+    });
+  }
+
+  // 2) Si cantidad es 0, eliminar el detalle (equivalente a quitar del carrito)
+  if (cantidad === 0) {
+    await prisma.carritoDetalle.deleteMany({
+      where: {
+        carritoId: carrito.id,
+        productoId: Number(productoId),
+      },
+    });
+    return;
+  }
+
+  // 3) Buscar si ya existe un detalle para ese producto
+  const detalleExistente = await prisma.carritoDetalle.findFirst({
+    where: {
+      carritoId: carrito.id,
+      productoId: Number(productoId),
+    },
+  });
+
+  const now = new Date();
+
+  if (!detalleExistente) {
+    // 4) Si no existe, crear nuevo detalle
+    await prisma.carritoDetalle.create({
+      data: {
+        carritoId: carrito.id,
+        productoId,
+        cantidad,
+        precioUnitario: precio,
+        fechaCreacion: now,
+        fechaActualizacion: now,
+      },
+    });
+  } else {
+    // 5) Si existe, actualizar cantidad y fechaActualizacion
+    await prisma.carritoDetalle.update({
+      where: {
+        id: detalleExistente.id,
+      },
+      data: {
+        cantidad,
+        precioUnitario: precio,
+        fechaActualizacion: now,
+      },
+    });
+  }
 }
 
 /**
@@ -206,7 +262,7 @@ async function eliminarDelCarrito(usuarioId, productoId) {
   await prisma.carritoDetalle.deleteMany({
     where: {
       carritoId: carrito.id,
-      productoId
+      productoId: Number(productoId)
     }
   });
 }
@@ -222,49 +278,42 @@ async function actualizarCantidad(usuarioId, productoId, nuevaCantidad) {
   if (nuevaCantidad <= 0) {
     throw new Error('La cantidad debe ser mayor a 0. Use eliminarDelCarrito para quitar el producto.');
   }
-
+  // 1) Buscar carrito activo
   const carrito = await prisma.carrito.findFirst({
     where: {
       usuarioId,
-      estado: 'activo'
-    }
+      estado: 'activo',
+    },
   });
 
   if (!carrito) {
     throw new Error('No hay carrito activo');
   }
 
+  // 2) Buscar detalle del producto en el carrito
   const detalle = await prisma.carritoDetalle.findFirst({
     where: {
       carritoId: carrito.id,
-      productoId
-    }
+      productoId: Number(productoId),
+    },
   });
 
   if (!detalle) {
     throw new Error('Producto no encontrado en el carrito');
   }
 
-  const updated = await prisma.carritoDetalle.update({
-    where: {
-      id: detalle.id
-    },
+  // 3) Actualizar solo la cantidad (se mantiene el precioUnitario que ya tiene el detalle)
+  await prisma.carritoDetalle.update({
+    where: { id: detalle.id },
     data: {
       cantidad: nuevaCantidad,
-      fechaActualizacion: new Date()
+      fechaActualizacion: new Date(),
     },
-    include: {
-      producto: {
-        select: {
-          id: true,
-          nombre: true,
-          precio: true
-        }
-      }
-    }
   });
 
-  return convertBigIntToString(updated);
+  // 4) Devolver el carrito actualizado
+  const carritoActualizado = await obtenerCarrito(usuarioId);
+  return carritoActualizado;
 }
 
 /**

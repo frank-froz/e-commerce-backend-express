@@ -6,7 +6,16 @@ const { verifyAccessToken, verifyRefreshToken } = require('../utils/auth');
  */
 const authenticateToken = async (req, res, next) => {
   try {
-    const accessToken = req.cookies?.accessToken;
+    // 1) Preferir token en cookie (flujo clásico del backend)
+    let accessToken = req.cookies?.accessToken;
+
+    // 2) Si no hay cookie, intentar leer Authorization: Bearer <token>
+    if (!accessToken) {
+      const authHeader = req.headers['authorization'];
+      if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.slice(7);
+      }
+    }
 
     if (!accessToken) {
       return res.status(401).json({

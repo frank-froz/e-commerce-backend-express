@@ -98,6 +98,18 @@ const actualizarCantidad = async (req, res) => {
     const { cantidad } = req.body;
     const usuarioId = req.user.id;
 
+    const parsedProductoId = Number(productoId);
+
+    if (!Number.isInteger(parsedProductoId) || parsedProductoId <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'ID de producto inválido',
+          code: 'INVALID_PRODUCT_ID',
+        },
+      });
+    }
+
     if (!cantidad || cantidad <= 0) {
       return res.status(400).json({
         success: false,
@@ -110,7 +122,7 @@ const actualizarCantidad = async (req, res) => {
 
     await carritoService.actualizarCantidad(
       usuarioId,
-      parseInt(productoId),
+      parsedProductoId,
       cantidad
     );
 
@@ -144,9 +156,21 @@ const eliminarDelCarrito = async (req, res) => {
     const { productoId } = req.params;
     const usuarioId = req.user.id;
 
+    const parsedProductoId = Number(productoId);
+
+    if (!Number.isInteger(parsedProductoId) || parsedProductoId <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'ID de producto inválido',
+          code: 'INVALID_PRODUCT_ID',
+        },
+      });
+    }
+
     await carritoService.eliminarDelCarrito(
       usuarioId,
-      parseInt(productoId)
+      parsedProductoId
     );
 
     const carrito = await carritoService.obtenerCarrito(usuarioId);
