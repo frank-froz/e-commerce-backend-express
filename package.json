@@ -16,7 +16,6 @@
     "test:api": "node scripts/test-api.js"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "5.22.0",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",

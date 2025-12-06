@@ -2,18 +2,18 @@ const prisma = require('../utils/prisma');
 const { verifyAccessToken, verifyRefreshToken } = require('../utils/auth');
 
 /**
- * Middleware para verificar Access Token en cookies
+ * Middleware para verificar Access Token en cookies o header Authorization
  */
 const authenticateToken = async (req, res, next) => {
   try {
-    // 1) Preferir token en cookie (flujo clásico del backend)
+    // Intentar obtener token de cookies o header Authorization
     let accessToken = req.cookies?.accessToken;
-
-    // 2) Si no hay cookie, intentar leer Authorization: Bearer <token>
+    
+    // Si no está en cookies, buscar en header Authorization
     if (!accessToken) {
-      const authHeader = req.headers['authorization'];
-      if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-        accessToken = authHeader.slice(7);
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.substring(7); // Remover 'Bearer ' del inicio
       }
     }
 

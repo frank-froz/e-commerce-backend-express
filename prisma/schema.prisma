@@ -19,8 +19,13 @@ model Rol {
 model Usuario {
   id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   correo           String            @unique @db.VarChar(255)
-  contrasenaHash   String            @map("contrasena_hash")
+  contrasenaHash   String            @map("contrasena_hash") @db.VarChar(255)
   nombreCompleto   String?           @map("nombre_completo") @db.VarChar(255)
+  telefono         String?           @db.VarChar(9)
+  direccion        String?           @db.VarChar(500)
+  ciudad           String?           @db.VarChar(100)
+  codigoPostal     String?           @map("codigo_postal") @db.VarChar(20)
+  pais             String?           @db.VarChar(100)
   fechaCreacion    DateTime          @default(now()) @map("fecha_creacion") @db.Timestamp(6)
   carritos         Carrito[]
   comprasCreadas   Compra[]          @relation("CompraCreador")
