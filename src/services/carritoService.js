@@ -216,6 +216,7 @@ async function obtenerCarrito(usuarioId) {
               nombre: true,
               descripcion: true,
               precio: true,
+              imagen: true,
               lineaProducto: {
                 select: {
                   id: true,
