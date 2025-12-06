@@ -6,7 +6,8 @@ const {
   verificarStock,
   obtenerMovimientos,
   productosConStockBajo,
-  ajustarStock
+  ajustarStock,
+  listarStock
 } = require('../controllers/stock.controller');
 const {
   authenticateToken,
@@ -50,6 +51,13 @@ const validarAjuste = [
 router.post('/verificar', validarVerificacion, verificarStock);
 
 /**
+ * @route   GET /api/stock
+ * @desc    Listar todo el stock
+ * @access  Public
+ */
+router.get('/', listarStock);
+
+/**
  * @route   GET /api/stock/bajo-stock
  * @desc    Obtener productos con stock bajo
  * @access  Private (Admin)
@@ -57,7 +65,7 @@ router.post('/verificar', validarVerificacion, verificarStock);
 router.get(
   '/bajo-stock',
   authenticateToken,
-  requireRole(['admin', 'comprador']),
+  requireRole('admin', 'comprador'),
   productosConStockBajo
 );
 
@@ -69,7 +77,7 @@ router.get(
 router.get(
   '/movimientos/:productoId',
   authenticateToken,
-  requireRole(['admin', 'comprador']),
+  requireRole('admin', 'comprador'),
   obtenerMovimientos
 );
 
@@ -88,7 +96,7 @@ router.get('/:productoId', obtenerStock);
 router.post(
   '/ajustar',
   authenticateToken,
-  requireRole(['admin']),
+  requireRole('admin'),
   validarAjuste,
   ajustarStock
 );
