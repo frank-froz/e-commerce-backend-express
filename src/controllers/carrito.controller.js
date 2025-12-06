@@ -10,7 +10,20 @@ const { validationResult } = require('express-validator');
  */
 const obtenerCarrito = async (req, res) => {
   try {
+    // Verificar que req.user existe
+    if (!req.user || !req.user.id) {
+      console.error('Error: req.user no está definido o no tiene id', { user: req.user });
+      return res.status(401).json({
+        success: false,
+        error: {
+          message: 'Usuario no autenticado correctamente',
+          code: 'USER_NOT_AUTHENTICATED'
+        }
+      });
+    }
+
     const usuarioId = req.user.id;
+    console.log('Obteniendo carrito para usuario:', usuarioId);
     const carrito = await carritoService.obtenerCarrito(usuarioId);
 
     if (!carrito) {
@@ -28,6 +41,7 @@ const obtenerCarrito = async (req, res) => {
 
   } catch (error) {
     console.error('Error al obtener carrito:', error);
+    console.error('Stack trace:', error.stack);
     res.status(500).json({
       success: false,
       error: {
