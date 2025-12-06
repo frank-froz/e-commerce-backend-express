@@ -23,7 +23,6 @@ const obtenerCarrito = async (req, res) => {
     }
 
     const usuarioId = req.user.id;
-    console.log('Obteniendo carrito para usuario:', usuarioId);
     const carrito = await carritoService.obtenerCarrito(usuarioId);
 
     if (!carrito) {
