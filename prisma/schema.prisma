@@ -3,7 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Rol {
@@ -20,6 +22,11 @@ model Usuario {
   correo           String            @unique @db.VarChar(255)
   contrasenaHash   String            @map("contrasena_hash")
   nombreCompleto   String?           @map("nombre_completo") @db.VarChar(255)
+  telefono         String?           @db.VarChar(20)
+  direccion        String?           @db.VarChar(100)
+  ciudad           String?           @db.VarChar(20)
+  codigoPostal     String?           @map("codigo_postal") @db.VarChar(20)
+  pais             String?           @db.VarChar(100)
   fechaCreacion    DateTime          @default(now()) @map("fecha_creacion") @db.Timestamp(6)
   carritos         Carrito[]
   comprasCreadas   Compra[]          @relation("CompraCreador")
@@ -56,6 +63,7 @@ model LineaProducto {
   codigo              String       @db.VarChar(50)
   nombre              String       @db.VarChar(255)
   descuentoPorcentaje Decimal      @default(0) @map("descuento_porcentaje") @db.Decimal(5, 2)
+  banner              String?      @db.VarChar(500)
   tipoProducto        TipoProducto @relation(fields: [tipoProductoId], references: [id])
   productos           Producto[]
 
@@ -92,6 +100,8 @@ model Producto {
   tipoProductoId   Int?              @map("tipo_producto_id")
   lineaProductoId  Int?              @map("linea_producto_id")
   precio           Decimal           @db.Decimal(12, 2)
+  imagen           String?           @db.VarChar(500)
+  imagenes         String[]          @default([])
   activo           Boolean           @default(true)
   fechaCreacion    DateTime          @default(now()) @map("fecha_creacion") @db.Timestamp(6)
   carritoDetalle   CarritoDetalle[]

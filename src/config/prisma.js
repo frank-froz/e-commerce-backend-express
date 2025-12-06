@@ -1,16 +1,7 @@
 
 const { PrismaClient } = require('@prisma/client');
-const { PrismaPg } = require('@prisma/adapter-pg');
-const { Pool } = require('pg');
 
-// Crear pool de conexiones PostgreSQL
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-
-// Crear adaptador de Prisma
-const adapter = new PrismaPg(pool);
-
-// Crear instancia única de Prisma con adaptador
+// Configuración simple compatible con todas las máquinas
 const prisma = new PrismaClient({
   adapter,
   log: process.env.NODE_ENV === 'development' 
