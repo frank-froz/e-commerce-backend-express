@@ -123,16 +123,30 @@ async function listarProductos(filtros = {}, pagina = 1, limite = 20) {
 async function obtenerProducto(productoId) {
   const producto = await prisma.producto.findUnique({
     where: { id: parseInt(productoId) },
-    include: {
-      marca: true,
-      categoria: true,
-      tipoProducto: true,
-      lineaProducto: true,
+    select: {
+      id: true,
+      sku: true,
+      nombre: true,
+      descripcion: true,
+      precio: true,
+      imagen: true,
+      imagenes: true,
+      activo: true,
+      fechaCreacion: true,
+      marca: {
+        select: { id: true, nombre: true }
+      },
+      categoria: {
+        select: { id: true, nombre: true }
+      },
+      tipoProducto: {
+        select: { id: true, nombre: true }
+      },
+      lineaProducto: {
+        select: { id: true, nombre: true, descuentoPorcentaje: true, banner: true }
+      },
       stock: {
-        select: {
-          cantidad: true,
-          fechaActualizacion: true
-        }
+        select: { cantidad: true, fechaActualizacion: true }
       }
     }
   });

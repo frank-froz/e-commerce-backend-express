@@ -133,6 +133,7 @@ const validarActualizarLineaProducto = [
 // Públicas
 router.get('/lineas-producto', catalogoController.listarLineasProducto);
 router.get('/lineas-producto/:id', validarId, catalogoController.obtenerLineaProducto);
+router.get('/lineas-producto/:lineaId/productos', validarId, catalogoController.obtenerProductosPorLinea);
 
 // Protegidas (Admin)
 router.post('/lineas-producto', authenticateToken, requireRole(['admin']), validarLineaProducto, catalogoController.crearLineaProducto);

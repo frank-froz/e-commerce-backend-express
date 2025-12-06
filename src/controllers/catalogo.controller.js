@@ -365,6 +365,43 @@ const eliminarLineaProducto = async (req, res) => {
   }
 };
 
+/**
+ * 🛍️ Obtiene productos filtrados por línea de producto
+ */
+const obtenerProductosPorLinea = async (req, res) => {
+  try {
+    const { lineaId } = req.params;
+    const { marcaId, categoriaId, precioMin, precioMax } = req.query;
+
+    const filtros = {};
+    if (marcaId) filtros.marcaId = marcaId;
+    if (categoriaId) filtros.categoriaId = categoriaId;
+    if (precioMin) filtros.precioMin = precioMin;
+    if (precioMax) filtros.precioMax = precioMax;
+
+    const productos = await catalogoService.obtenerProductosPorLinea(lineaId, filtros);
+    
+    if (!productos || productos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'No hay productos en esta línea', code: 'NOT_FOUND' }
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: productos,
+      count: productos.length 
+    });
+  } catch (error) {
+    console.error('Error al obtener productos por línea:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: error.message || 'Error al obtener productos', code: 'FETCH_ERROR' }
+    });
+  }
+};
+
 module.exports = {
   // Marcas
   listarMarcas,
@@ -392,5 +429,8 @@ module.exports = {
   obtenerLineaProducto,
   crearLineaProducto,
   actualizarLineaProducto,
-  eliminarLineaProducto
+  eliminarLineaProducto,
+  
+  // Productos por Línea
+  obtenerProductosPorLinea
 };

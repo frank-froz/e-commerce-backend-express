@@ -210,7 +210,7 @@ async function main() {
         }
       },
       update: {
-        banner: 'https://img.freepik.com/vector-premium/30-descuento-super-venta-cartel-promocional_520587-332.jpg'
+        banner: 'https://hiraoka.com.pe/media/mageplaza/blog/post/a/c/accesorios-gamer_1.jpg'
       },
       create: {
         tipoProductoId: tipoTech.id,
@@ -229,7 +229,7 @@ async function main() {
         }
       },
       update: {
-        banner: 'https://img.freepik.com/vector-gratis/plantilla-banner-horizontal-evento-cibernetico-lunes_23-2150865324.jpg'
+        banner: 'https://www.mielectro.es/blog/wp-content/uploads/2024/10/Mejores-perifericos-gaming.jpg'
       },
       create: {
         tipoProductoId: tipoAcc.id,
@@ -247,7 +247,7 @@ async function main() {
         }
       },
       update: {
-        banner: 'https://static.vecteezy.com/system/resources/thumbnails/029/254/123/small_2x/premium-quality-elegant-banner-design-for-promotion-free-png.png'
+        banner: 'https://stargamers.com.pe/index/wp-content/uploads/2019/08/Primus_productos-768x688.jpg'
       },
       create: {
         tipoProductoId: tipoAcc.id,
@@ -266,7 +266,7 @@ async function main() {
         }
       },
       update: {
-        banner: 'https://img.freepik.com/vector-gratis/20-descuento-mega-venta-banner-vector-ilustracion_460848-15534.jpg'
+        banner: 'https://woodandfirestudio.com/wp-content/uploads/2023/03/bestheadphones.jpg'
       },
       create: {
         tipoProductoId: tipoAudio.id,

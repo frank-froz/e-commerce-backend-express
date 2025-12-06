@@ -25,15 +25,11 @@ async function listarMarcas() {
 async function obtenerMarca(id) {
   const marca = await prisma.marca.findUnique({
     where: { id: parseInt(id) },
-    include: {
-      productos: {
-        select: {
-          id: true,
-          sku: true,
-          nombre: true,
-          precio: true,
-          activo: true
-        }
+    select: {
+      id: true,
+      nombre: true,
+      _count: {
+        select: { productos: true }
       }
     }
   });
@@ -104,11 +100,11 @@ async function eliminarMarca(id) {
  */
 async function listarCategorias() {
   const categorias = await prisma.categoria.findMany({
-    include: {
+    select: {
+      id: true,
+      nombre: true,
+      categoriaPadreId: true,
       categoriaPadre: {
-        select: { id: true, nombre: true }
-      },
-      subcategorias: {
         select: { id: true, nombre: true }
       }
     },
@@ -126,17 +122,18 @@ async function listarCategorias() {
 async function obtenerCategoria(id) {
   const categoria = await prisma.categoria.findUnique({
     where: { id: parseInt(id) },
-    include: {
-      categoriaPadre: true,
-      subcategorias: true,
-      productos: {
-        select: {
-          id: true,
-          sku: true,
-          nombre: true,
-          precio: true,
-          activo: true
-        }
+    select: {
+      id: true,
+      nombre: true,
+      categoriaPadreId: true,
+      categoriaPadre: {
+        select: { id: true, nombre: true }
+      },
+      subcategorias: {
+        select: { id: true, nombre: true }
+      },
+      _count: {
+        select: { productos: true }
       }
     }
   });
@@ -468,5 +465,47 @@ module.exports = {
   obtenerLineaProducto,
   crearLineaProducto,
   actualizarLineaProducto,
-  eliminarLineaProducto
+  eliminarLineaProducto,
+  
+  // Productos por Catálogo
+  obtenerProductosPorLinea
 };
+
+/**
+ * 🛍️ Obtiene productos filtrados por línea de producto
+ * @param {number} lineaId - ID de la línea de producto
+ * @param {Object} filtros - Filtros adicionales (marcaId, categoriaId, rango precio)
+ * @returns {Promise<Array>} Productos
+ */
+async function obtenerProductosPorLinea(lineaId, filtros = {}) {
+  const where = {
+    lineaProductoId: parseInt(lineaId),
+    activo: true
+  };
+
+  // Filtros opcionales
+  if (filtros.marcaId) {
+    where.marcaId = parseInt(filtros.marcaId);
+  }
+  if (filtros.categoriaId) {
+    where.categoriaId = parseInt(filtros.categoriaId);
+  }
+  if (filtros.precioMin || filtros.precioMax) {
+    where.precio = {};
+    if (filtros.precioMin) where.precio.gte = parseFloat(filtros.precioMin);
+    if (filtros.precioMax) where.precio.lte = parseFloat(filtros.precioMax);
+  }
+
+  const productos = await prisma.producto.findMany({
+    where,
+    include: {
+      marca: { select: { id: true, nombre: true } },
+      categoria: { select: { id: true, nombre: true } },
+      lineaProducto: { select: { id: true, nombre: true, banner: true } },
+      stock: { select: { cantidad: true } }
+    },
+    orderBy: { nombre: 'asc' }
+  });
+
+  return convertBigIntToString(productos);
+}

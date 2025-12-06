@@ -205,3 +205,5 @@ CREATE INDEX idx_productos_activo ON productos(activo);
 CREATE INDEX idx_ordenes_usuario ON ordenes(usuario_id);
 CREATE INDEX idx_ordenes_estado ON ordenes(estado);
 CREATE INDEX idx_carritos_usuario ON carritos(usuario_id);
+CREATE INDEX idx_productos_linea ON productos(linea_producto_id);
+CREATE INDEX idx_linea_tipo ON linea_producto(tipo_producto_id);
