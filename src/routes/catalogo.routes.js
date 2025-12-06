@@ -23,9 +23,9 @@ router.get('/marcas', catalogoController.listarMarcas);
 router.get('/marcas/:id', validarId, catalogoController.obtenerMarca);
 
 // Protegidas (Admin)
-router.post('/marcas', authenticateToken, requireRole(['admin']), validarMarca, catalogoController.crearMarca);
-router.put('/marcas/:id', authenticateToken, requireRole(['admin']), validarId, validarMarca, catalogoController.actualizarMarca);
-router.delete('/marcas/:id', authenticateToken, requireRole(['admin']), validarId, catalogoController.eliminarMarca);
+router.post('/marcas', authenticateToken, requireRole('admin'), validarMarca, catalogoController.crearMarca);
+router.put('/marcas/:id', authenticateToken, requireRole('admin'), validarId, validarMarca, catalogoController.actualizarMarca);
+router.delete('/marcas/:id', authenticateToken, requireRole('admin'), validarId, catalogoController.eliminarMarca);
 
 // ============================================
 // CATEGORÍAS
@@ -56,9 +56,9 @@ router.get('/categorias', catalogoController.listarCategorias);
 router.get('/categorias/:id', validarId, catalogoController.obtenerCategoria);
 
 // Protegidas (Admin)
-router.post('/categorias', authenticateToken, requireRole(['admin']), validarCategoria, catalogoController.crearCategoria);
-router.put('/categorias/:id', authenticateToken, requireRole(['admin']), validarId, validarActualizarCategoria, catalogoController.actualizarCategoria);
-router.delete('/categorias/:id', authenticateToken, requireRole(['admin']), validarId, catalogoController.eliminarCategoria);
+router.post('/categorias', authenticateToken, requireRole('admin'), validarCategoria, catalogoController.crearCategoria);
+router.put('/categorias/:id', authenticateToken, requireRole('admin'), validarId, validarActualizarCategoria, catalogoController.actualizarCategoria);
+router.delete('/categorias/:id', authenticateToken, requireRole('admin'), validarId, catalogoController.eliminarCategoria);
 
 // ============================================
 // TIPOS DE PRODUCTO
@@ -91,9 +91,9 @@ router.get('/tipos-producto', catalogoController.listarTiposProducto);
 router.get('/tipos-producto/:id', validarId, catalogoController.obtenerTipoProducto);
 
 // Protegidas (Admin)
-router.post('/tipos-producto', authenticateToken, requireRole(['admin']), validarTipoProducto, catalogoController.crearTipoProducto);
-router.put('/tipos-producto/:id', authenticateToken, requireRole(['admin']), validarId, validarActualizarTipoProducto, catalogoController.actualizarTipoProducto);
-router.delete('/tipos-producto/:id', authenticateToken, requireRole(['admin']), validarId, catalogoController.eliminarTipoProducto);
+router.post('/tipos-producto', authenticateToken, requireRole('admin'), validarTipoProducto, catalogoController.crearTipoProducto);
+router.put('/tipos-producto/:id', authenticateToken, requireRole('admin'), validarId, validarActualizarTipoProducto, catalogoController.actualizarTipoProducto);
+router.delete('/tipos-producto/:id', authenticateToken, requireRole('admin'), validarId, catalogoController.eliminarTipoProducto);
 
 // ============================================
 // LÍNEAS DE PRODUCTO
@@ -135,8 +135,8 @@ router.get('/lineas-producto', catalogoController.listarLineasProducto);
 router.get('/lineas-producto/:id', validarId, catalogoController.obtenerLineaProducto);
 
 // Protegidas (Admin)
-router.post('/lineas-producto', authenticateToken, requireRole(['admin']), validarLineaProducto, catalogoController.crearLineaProducto);
-router.put('/lineas-producto/:id', authenticateToken, requireRole(['admin']), validarId, validarActualizarLineaProducto, catalogoController.actualizarLineaProducto);
-router.delete('/lineas-producto/:id', authenticateToken, requireRole(['admin']), validarId, catalogoController.eliminarLineaProducto);
+router.post('/lineas-producto', authenticateToken, requireRole('admin'), validarLineaProducto, catalogoController.crearLineaProducto);
+router.put('/lineas-producto/:id', authenticateToken, requireRole('admin'), validarId, validarActualizarLineaProducto, catalogoController.actualizarLineaProducto);
+router.delete('/lineas-producto/:id', authenticateToken, requireRole('admin'), validarId, catalogoController.eliminarLineaProducto);
 
 module.exports = router;

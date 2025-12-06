@@ -70,7 +70,7 @@ router.get('/:id', obtenerOrden);
  */
 router.patch(
   '/:id/confirmar',
-  requireRole(['admin']),
+  requireRole('admin'),
   confirmarOrden
 );
 

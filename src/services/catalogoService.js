@@ -150,10 +150,10 @@ async function obtenerCategoria(id) {
 
 /**
  * ➕ Crea una nueva categoría
- * @param {Object} datos - { nombre, categoriaPadreId }
+ * @param {Object} datos - { nombre, descripcion, categoriaPadreId }
  * @returns {Promise<Object>} Categoría creada
  */
-async function crearCategoria({ nombre, categoriaPadreId }) {
+async function crearCategoria({ nombre, descripcion, categoriaPadreId }) {
   const existente = await prisma.categoria.findUnique({
     where: { nombre }
   });
@@ -165,6 +165,7 @@ async function crearCategoria({ nombre, categoriaPadreId }) {
   const categoria = await prisma.categoria.create({
     data: {
       nombre,
+      descripcion: descripcion || null,
       categoriaPadreId: categoriaPadreId ? parseInt(categoriaPadreId) : null
     },
     include: {
@@ -178,12 +179,13 @@ async function crearCategoria({ nombre, categoriaPadreId }) {
 /**
  * ✏️ Actualiza una categoría
  * @param {number} id - ID de la categoría
- * @param {Object} datos - { nombre, categoriaPadreId }
+ * @param {Object} datos - { nombre, descripcion, categoriaPadreId }
  * @returns {Promise<Object>} Categoría actualizada
  */
-async function actualizarCategoria(id, { nombre, categoriaPadreId }) {
+async function actualizarCategoria(id, { nombre, descripcion, categoriaPadreId }) {
   const dataToUpdate = {};
   if (nombre !== undefined) dataToUpdate.nombre = nombre;
+  if (descripcion !== undefined) dataToUpdate.descripcion = descripcion || null;
   if (categoriaPadreId !== undefined) {
     dataToUpdate.categoriaPadreId = categoriaPadreId ? parseInt(categoriaPadreId) : null;
   }

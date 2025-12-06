@@ -156,7 +156,7 @@ async function obtenerProducto(productoId) {
  * @returns {Promise<Object>} Producto creado
  */
 async function crearProducto(datos) {
-  const { sku, nombre, descripcion, precio, marcaId, categoriaId, tipoProductoId, lineaProductoId, activo } = datos;
+  const { sku, nombre, descripcion, precio, marcaId, categoriaId, tipoProductoId, lineaProductoId, imagen, cantidadInicial, activo } = datos;
 
   // Verificar si el SKU ya existe
   const existente = await prisma.producto.findUnique({
@@ -177,6 +177,7 @@ async function crearProducto(datos) {
       categoriaId: categoriaId ? parseInt(categoriaId) : null,
       tipoProductoId: tipoProductoId ? parseInt(tipoProductoId) : null,
       lineaProductoId: lineaProductoId ? parseInt(lineaProductoId) : null,
+      imagen: imagen || null,
       activo: activo !== undefined ? activo : true
     },
     include: {
@@ -187,11 +188,15 @@ async function crearProducto(datos) {
     }
   });
 
-  // Crear registro de stock inicial en 0
+  // Crear registro de stock inicial con la cantidad proporcionada
+  const cantidadStock = cantidadInicial !== undefined && cantidadInicial !== null 
+    ? parseInt(cantidadInicial) 
+    : 0;
+
   await prisma.stockProducto.create({
     data: {
       productoId: producto.id,
-      cantidad: 0
+      cantidad: cantidadStock
     }
   });
 
@@ -205,7 +210,7 @@ async function crearProducto(datos) {
  * @returns {Promise<Object>} Producto actualizado
  */
 async function actualizarProducto(productoId, datos) {
-  const { sku, nombre, descripcion, precio, marcaId, categoriaId, tipoProductoId, lineaProductoId, activo } = datos;
+  const { sku, nombre, descripcion, precio, marcaId, categoriaId, tipoProductoId, lineaProductoId, imagen, activo } = datos;
 
   // Si se actualiza el SKU, verificar que no exista
   if (sku) {
@@ -230,6 +235,7 @@ async function actualizarProducto(productoId, datos) {
   if (categoriaId !== undefined) dataToUpdate.categoriaId = categoriaId ? parseInt(categoriaId) : null;
   if (tipoProductoId !== undefined) dataToUpdate.tipoProductoId = tipoProductoId ? parseInt(tipoProductoId) : null;
   if (lineaProductoId !== undefined) dataToUpdate.lineaProductoId = lineaProductoId ? parseInt(lineaProductoId) : null;
+  if (imagen !== undefined) dataToUpdate.imagen = imagen || null;
   if (activo !== undefined) dataToUpdate.activo = activo;
 
   const producto = await prisma.producto.update({
