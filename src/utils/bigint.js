@@ -1,19 +1,27 @@
-// 🔧 Utilidades para BigInt
-// Conversión de BigInt a String para serialización JSON
+// 🔧 Utilidades para BigInt y Decimal
+// Conversión de BigInt a String y Decimal a Number para serialización JSON
+
+const { Decimal } = require('@prisma/client/runtime/library');
 
 /**
- * Convierte BigInt a String recursivamente para serialización JSON
+ * Convierte BigInt a String y Decimal a Number recursivamente para serialización JSON
  * PostgreSQL BIGINT/SERIAL8 se convierten a JavaScript BigInt,
+ * PostgreSQL DECIMAL/NUMERIC se convierten a Prisma Decimal,
  * que no pueden ser serializados a JSON directamente.
  * 
  * @param {*} obj - Objeto a convertir
- * @returns {*} Objeto con BigInts convertidos a strings
+ * @returns {*} Objeto con BigInts convertidos a strings y Decimals a números
  */
 function convertBigIntToString(obj) {
   if (obj === null || obj === undefined) return obj;
   
   if (typeof obj === 'bigint') {
     return obj.toString();
+  }
+  
+  // Convertir Decimal de Prisma a número
+  if (obj instanceof Decimal) {
+    return parseFloat(obj.toString());
   }
   
   if (obj instanceof Date) {
