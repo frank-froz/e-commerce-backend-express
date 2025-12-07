@@ -20,52 +20,179 @@ const { convertBigIntToString } = require('../utils/bigint');
  * await actualizarCarrito('uuid-usuario', 10, 0, 100.00);
  */
 async function actualizarCarrito(usuarioId, productoId, cantidad, precio) {
-  await prisma.$executeRaw`
-    SELECT proc_actualizar_carrito(
-      ${usuarioId}::UUID,
-      ${productoId}::INT,
-      ${cantidad}::INT,
-      ${precio}::NUMERIC
-    )
-  `;
+  // 1) Buscar carrito activo del usuario, crear si no existe
+  let carrito = await prisma.carrito.findFirst({
+    where: {
+      usuarioId,
+      estado: 'activo',
+    },
+  });
+
+  if (!carrito) {
+    carrito = await prisma.carrito.create({
+      data: {
+        usuarioId,
+        estado: 'activo',
+        fechaCreacion: new Date(),
+      },
+    });
+  }
+
+  // 2) Si cantidad es 0, eliminar el detalle (equivalente a quitar del carrito)
+  if (cantidad === 0) {
+    await prisma.carritoDetalle.deleteMany({
+      where: {
+        carritoId: carrito.id,
+        productoId: Number(productoId),
+      },
+    });
+    return;
+  }
+
+  // 3) Buscar si ya existe un detalle para ese producto
+  const detalleExistente = await prisma.carritoDetalle.findFirst({
+    where: {
+      carritoId: carrito.id,
+      productoId: Number(productoId),
+    },
+  });
+
+  const now = new Date();
+
+  if (!detalleExistente) {
+    // 4) Si no existe, crear nuevo detalle
+    await prisma.carritoDetalle.create({
+      data: {
+        carritoId: carrito.id,
+        productoId,
+        cantidad,
+        precioUnitario: precio,
+        fechaCreacion: now,
+        fechaActualizacion: now,
+      },
+    });
+  } else {
+    // 5) Si existe, actualizar cantidad y fechaActualizacion
+    await prisma.carritoDetalle.update({
+      where: {
+        id: detalleExistente.id,
+      },
+      data: {
+        cantidad,
+        precioUnitario: precio,
+        fechaActualizacion: now,
+      },
+    });
+  }
 }
 
 /**
- * 🛍️ Convierte el carrito en una orden
+ * 🛍️ Convierte el carrito en una orden usando Prisma puro (sin stored procedure)
  * @param {string} usuarioId - UUID del usuario
  * @returns {Promise<number>} ID de la orden creada
  */
 async function checkoutCarrito(usuarioId) {
-  // Obtener el carrito activo del usuario
+  // Cargar carrito activo con sus detalles, producto y stock
   const carrito = await prisma.carrito.findFirst({
     where: {
       usuarioId,
       estado: 'activo'
-    }
+    },
+    include: {
+      detalles: {
+        include: {
+          producto: {
+            include: {
+              stock: true,
+            },
+          },
+        },
+      },
+    },
   });
 
-  if (!carrito) {
-    throw new Error('No hay carrito activo para este usuario');
+  if (!carrito || carrito.detalles.length === 0) {
+    throw new Error('El carrito está vacío');
   }
 
-  try {
-    const result = await prisma.$queryRaw`
-      SELECT proc_checkout_carrito(
-        ${carrito.id}::BIGINT,
-        ${usuarioId}::UUID
-      ) as orden_id
-    `;
-    
-    return Number(result[0].orden_id);
-  } catch (error) {
-    if (error.message.includes('carrito está vacío')) {
-      throw new Error('El carrito está vacío');
-    }
-    if (error.message.includes('Stock insuficiente')) {
+  // Validar stock disponible para cada producto
+  for (const d of carrito.detalles) {
+    const disponible = d.producto.stock?.cantidad ?? 0;
+    if (disponible < d.cantidad) {
       throw new Error('Stock insuficiente para uno o más productos');
     }
-    throw error;
   }
+
+  // Calcular monto total de la orden
+  const montoTotal = carrito.detalles.reduce((sum, d) => {
+    const precioUnitario = Number(d.precioUnitario);
+    return sum + precioUnitario * d.cantidad;
+  }, 0);
+
+  // Transacción: crear orden, detalles, actualizar stock y marcar carrito como completado
+  const ordenCreada = await prisma.$transaction(async (tx) => {
+    // 1) Crear orden
+    const orden = await tx.orden.create({
+      data: {
+        usuarioId,
+        montoTotal,
+        estado: 'confirmada',
+        fechaConfirmacion: new Date(),
+      },
+    });
+
+    // 2) Crear detalles de la orden
+    for (const d of carrito.detalles) {
+      const precioUnitario = Number(d.precioUnitario);
+      const subtotal = precioUnitario * d.cantidad;
+
+      await tx.ordenDetalle.create({
+        data: {
+          ordenId: orden.id,
+          productoId: d.productoId,
+          precioUnitario,
+          cantidad: d.cantidad,
+          subtotal,
+        },
+      });
+
+      // 3) Actualizar stock del producto
+      if (d.producto.stock) {
+        await tx.stockProducto.update({
+          where: { productoId: d.productoId },
+          data: {
+            cantidad: d.producto.stock.cantidad - d.cantidad,
+            fechaActualizacion: new Date(),
+          },
+        });
+      } else {
+        // Si no existe registro de stock, crearlo en negativo/cero según tu regla de negocio
+        await tx.stockProducto.create({
+          data: {
+            productoId: d.productoId,
+            cantidad: -d.cantidad,
+          },
+        });
+      }
+    }
+
+    // 4) Marcar carrito como completado y limpiar detalles
+    await tx.carritoDetalle.deleteMany({
+      where: { carritoId: carrito.id },
+    });
+
+    await tx.carrito.update({
+      where: { id: carrito.id },
+      data: {
+        estado: 'completado',
+        fechaActualizacion: new Date(),
+      },
+    });
+
+    return orden;
+  });
+
+  return Number(ordenCreada.id);
 }
 
 /**
@@ -89,6 +216,7 @@ async function obtenerCarrito(usuarioId) {
               nombre: true,
               descripcion: true,
               precio: true,
+              imagen: true,
               lineaProducto: {
                 select: {
                   id: true,
@@ -206,7 +334,7 @@ async function eliminarDelCarrito(usuarioId, productoId) {
   await prisma.carritoDetalle.deleteMany({
     where: {
       carritoId: carrito.id,
-      productoId
+      productoId: Number(productoId)
     }
   });
 }
@@ -222,49 +350,42 @@ async function actualizarCantidad(usuarioId, productoId, nuevaCantidad) {
   if (nuevaCantidad <= 0) {
     throw new Error('La cantidad debe ser mayor a 0. Use eliminarDelCarrito para quitar el producto.');
   }
-
+  // 1) Buscar carrito activo
   const carrito = await prisma.carrito.findFirst({
     where: {
       usuarioId,
-      estado: 'activo'
-    }
+      estado: 'activo',
+    },
   });
 
   if (!carrito) {
     throw new Error('No hay carrito activo');
   }
 
+  // 2) Buscar detalle del producto en el carrito
   const detalle = await prisma.carritoDetalle.findFirst({
     where: {
       carritoId: carrito.id,
-      productoId
-    }
+      productoId: Number(productoId),
+    },
   });
 
   if (!detalle) {
     throw new Error('Producto no encontrado en el carrito');
   }
 
-  const updated = await prisma.carritoDetalle.update({
-    where: {
-      id: detalle.id
-    },
+  // 3) Actualizar solo la cantidad (se mantiene el precioUnitario que ya tiene el detalle)
+  await prisma.carritoDetalle.update({
+    where: { id: detalle.id },
     data: {
       cantidad: nuevaCantidad,
-      fechaActualizacion: new Date()
+      fechaActualizacion: new Date(),
     },
-    include: {
-      producto: {
-        select: {
-          id: true,
-          nombre: true,
-          precio: true
-        }
-      }
-    }
   });
 
-  return convertBigIntToString(updated);
+  // 4) Devolver el carrito actualizado
+  const carritoActualizado = await obtenerCarrito(usuarioId);
+  return carritoActualizado;
 }
 
 /**

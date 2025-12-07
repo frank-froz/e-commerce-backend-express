@@ -1,6 +1,7 @@
 const prisma = require('../utils/prisma');
 const { hashPassword, comparePassword, validatePasswordStrength } = require('../utils/auth');
 const { validationResult } = require('express-validator');
+const { convertBigIntToString } = require('../utils/bigint');
 
 /**
  * @desc    Obtener perfil del usuario autenticado
@@ -257,8 +258,11 @@ const getOrders = async (req, res) => {
     // Contar total de órdenes
     const totalOrdenes = await prisma.orden.count({ where });
 
+    // Convertir BigInt a String para serialización JSON
+    const ordenesConvertidas = convertBigIntToString(ordenes);
+
     res.json({
-      ordenes,
+      ordenes: ordenesConvertidas,
       paginacion: {
         total: totalOrdenes,
         limit: parseInt(limit),

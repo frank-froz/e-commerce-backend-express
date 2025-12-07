@@ -44,7 +44,7 @@ const validarCompra = [
  */
 router.post(
   '/',
-  requireRole(['admin', 'comprador']),
+  requireRole('admin', 'comprador'),
   validarCompra,
   registrarCompra
 );
@@ -70,7 +70,7 @@ router.get('/:id', obtenerCompra);
  */
 router.patch(
   '/:id/confirmar',
-  requireRole(['admin', 'comprador']),
+  requireRole('admin', 'comprador'),
   confirmarRecepcion
 );
 

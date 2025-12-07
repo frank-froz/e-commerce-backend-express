@@ -140,10 +140,36 @@ async function productosConStockBajo(cantidadMinima = 10) {
   return convertBigIntToString(productos);
 }
 
+/**
+ * 📋 Obtiene todo el stock de productos
+ * @returns {Promise<Array>} Lista completa de stock
+ */
+async function listarStock() {
+  const stock = await prisma.stockProducto.findMany({
+    include: {
+      producto: {
+        select: {
+          id: true,
+          sku: true,
+          nombre: true,
+          precio: true,
+          activo: true
+        }
+      }
+    },
+    orderBy: {
+      cantidad: 'asc'
+    }
+  });
+
+  return convertBigIntToString(stock);
+}
+
 module.exports = {
   actualizarStock,
   verificarStock,
   obtenerStock,
   obtenerMovimientos,
-  productosConStockBajo
+  productosConStockBajo,
+  listarStock
 };

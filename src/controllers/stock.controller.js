@@ -203,10 +203,37 @@ const ajustarStock = async (req, res) => {
   }
 };
 
+/**
+ * @route   GET /api/stock
+ * @desc    Listar todo el stock
+ * @access  Public
+ */
+const listarStock = async (req, res) => {
+  try {
+    const stock = await stockService.listarStock();
+
+    res.json({
+      success: true,
+      data: stock
+    });
+
+  } catch (error) {
+    console.error('Error al listar stock:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        message: error.message || 'Error al listar el stock',
+        code: 'FETCH_ERROR'
+      }
+    });
+  }
+};
+
 module.exports = {
   obtenerStock,
   verificarStock,
   obtenerMovimientos,
   productosConStockBajo,
-  ajustarStock
+  ajustarStock,
+  listarStock
 };
